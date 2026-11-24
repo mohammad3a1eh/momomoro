@@ -1,21 +1,56 @@
-# Next.js template
+# پومودورو (Next.js + shadcn/ui + Postgres)
 
-This is a Next.js template with shadcn/ui.
+تایمر پومودورو با تسک، پروفایل عمومی، نمودار ۱۰۰ روزه، صفحه‌ی «فعال‌ها»، بنرهای تصادفی و PWA.
+فقط Next.js؛ بدون بک‌اند جدا، بدون Docker.
 
-## Adding components
-
-To add components to your app, run the following command:
+## اجرا
 
 ```bash
-npx shadcn@latest add button
+cp .env.example .env.local     # DATABASE_URL را پر کن
+pnpm install                   # قفل‌فایل را هم به‌روز می‌کند (pg اضافه شده)
+pnpm dev                       # توسعه
+# یا
+pnpm build && pnpm start       # production
 ```
 
-This will place the ui components in the `components` directory.
+جدول‌ها هنگام اولین درخواست خودکار ساخته می‌شوند (`CREATE TABLE IF NOT EXISTS`)؛ فقط یک دیتابیس خالی لازم است:
 
-## Using components
+```bash
+createdb pomodoro
+```
 
-To use the components in your app, import them as follows:
+## ساختار
 
-```tsx
-import { Button } from "@/components/ui/button";
+| مسیر | کار |
+|---|---|
+| `/` | تایمر + تسک‌ها (نیاز به ورود؛ مهمان به `/live` می‌رود) |
+| `/live` | لیست کسانی که الان تمرکز دارند + تسک فعالشان (عمومی) |
+| `/u/[username]` | پروفایل عمومی: آمار، نمودار ۱۰۰ روز، تسک‌های هر روز |
+| `/settings` | مدت تمرکز / استراحت کوتاه / استراحت بلند، نصب PWA، خروج |
+| `/login` `/register` | نام کاربری + رمز (ثبت‌نام با تکرار رمز). بازیابی حساب وجود ندارد |
+
+- **حریم خصوصی تسک:** تسک خصوصی برای بقیه در پروفایل و `/live` فقط «تسک خصوصی» نشان داده می‌شود (نام آن اصلاً به مرورگر دیگران فرستاده نمی‌شود). صاحب حساب نام واقعی را می‌بیند.
+- **تایمر:** وضعیت روی سرور ذخیره می‌شود؛ با بستن/باز کردن تب یا گوشی ادامه پیدا می‌کند. توقف دستی بعد از ≥ ۱ دقیقه تمرکز، همان مقدار را ثبت می‌کند.
+- **حذف تسک** در واقع بایگانی است تا تاریخچه‌ی نمودار از بین نرود.
+- **منطقه‌ی زمانی** هر کاربر موقع ثبت‌نام از مرورگر گرفته می‌شود و برای گروه‌بندی روزها استفاده می‌شود. تاریخ‌ها شمسی نمایش داده می‌شوند.
+
+## بنرها
+
+عکس‌ها را در `public/banners/` بگذار (همه هم‌اندازه و هم‌فرمت؛ پیشنهاد ۱۸۰۰×۶۰۰ webp). هر بار یکی تصادفی نمایش داده می‌شود.
+اختیاری: عکس‌های داخل `morning/ noon/ evening/ night/` فقط در ساعت‌های خودشان انتخاب می‌شوند. جزئیات در `public/banners/README.txt`.
+
+## PWA
+
+`app/manifest.ts` + `public/sw.js` + آیکن‌ها در `public/icons/`. Service worker فقط در production ثبت می‌شود و HTTPS لازم دارد.
+صفحه‌ی تنظیمات دکمه‌ی نصب (و راهنمای iOS) را نشان می‌دهد.
+
+## نکته برای پشت reverse proxy
+
+Server Actions هدر `Origin` را با `Host` / `X-Forwarded-Host` مقایسه می‌کنند. اگر nginx این هدرها را درست پاس ندهد، فرم‌ها خطا می‌دهند:
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
