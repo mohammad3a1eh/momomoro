@@ -26,10 +26,13 @@ export async function updateSettingsAction(_prev: FormState, formData: FormData)
   if (long == null) return { error: "استراحت بلند باید بین ۱ تا ۱۲۰ دقیقه باشد" }
   if (every == null) return { error: "تعداد دور تا استراحت بلند باید بین ۲ تا ۱۲ باشد" }
 
+  const isPublic = formData.get("isPublic") === "on"
+
   await query(
-    `UPDATE users SET focus_minutes = $1, short_break_minutes = $2, long_break_minutes = $3, long_break_every = $4
-      WHERE id = $5`,
-    [focus, short, long, every, user.id]
+    `UPDATE users SET focus_minutes = $1, short_break_minutes = $2, long_break_minutes = $3,
+          long_break_every = $4, is_public = $5
+    WHERE id = $6`,
+    [focus, short, long, every, isPublic, user.id]
   )
   revalidatePath("/", "layout")
   return { ok: true }

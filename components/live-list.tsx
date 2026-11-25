@@ -41,36 +41,49 @@ export function LiveList({ items, serverNow }: { items: LiveItem[]; serverNow: n
 
   return (
     <ItemGroup className="gap-2">
-      {items.map((it) => {
+      {items.map((it, i) => {
         const total = it.durationSec * 1000
-        const elapsed = it.elapsedBeforeMs + (it.runStartedAt != null ? now - it.runStartedAt : 0)
+        const elapsed =
+          it.elapsedBeforeMs +
+          (it.runStartedAt != null ? now - it.runStartedAt : 0)
         const remaining = Math.max(0, total - elapsed)
         const paused = it.runStartedAt == null
         const isFocus = it.mode === "focus"
-        return (
+
+        const card = (
+          <Item variant="outline">
+            <Avatar size="lg">
+              <AvatarFallback className="uppercase">
+                {it.username.slice(0, 1)}
+              </AvatarFallback>
+              {isFocus && !paused && <AvatarBadge />}
+            </Avatar>
+            <ItemContent>
+              <ItemTitle dir="ltr" className="w-fit text-sm">
+                {it.username}
+              </ItemTitle>
+              <ItemDescription className="flex items-center gap-1.5">
+                {it.isPrivate && <Lock className="size-3.5 text-primary" />}
+                {!isFocus && <Coffee className="size-3.5" />}
+                {it.title}
+              </ItemDescription>
+            </ItemContent>
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-lg font-bold tabular-nums" dir="ltr">
+                {it.hidden ? it.clock : formatClock(remaining)}
+              </span>
+              {paused && !it.hidden && <Badge variant="secondary">مکث</Badge>}
+            </div>
+          </Item>
+        )
+
+        return it.hidden ? (
+          <div key={`hidden-${i}`} className="block">
+            {card}
+          </div>
+        ) : (
           <Link key={it.username} href={`/u/${it.username}`} className="block">
-            <Item variant="outline">
-              <Avatar size="lg">
-                <AvatarFallback className="uppercase">{it.username.slice(0, 1)}</AvatarFallback>
-                {isFocus && !paused && <AvatarBadge />}
-              </Avatar>
-              <ItemContent>
-                <ItemTitle dir="ltr" className="w-fit text-sm">
-                  {it.username}
-                </ItemTitle>
-                <ItemDescription className="flex items-center gap-1.5">
-                  {it.isPrivate && <Lock className="size-3.5 text-primary" />}
-                  {!isFocus && <Coffee className="size-3.5" />}
-                  {it.title}
-                </ItemDescription>
-              </ItemContent>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-lg font-bold tabular-nums" dir="ltr">
-                  {formatClock(remaining)}
-                </span>
-                {paused && <Badge variant="secondary">مکث</Badge>}
-              </div>
-            </Item>
+            {card}
           </Link>
         )
       })}

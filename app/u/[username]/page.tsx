@@ -21,8 +21,16 @@ export const dynamic = "force-dynamic"
 type Params = { params: Promise<{ username: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { username } = await params
-  return { title: `@${decodeURIComponent(username).toLowerCase()}` }
+  const { username: raw } = await params
+  const username = decodeURIComponent(raw).toLowerCase()
+  const row = await queryOne<{ id: number; is_public: boolean }>(
+    "SELECT id, is_public FROM users WHERE username = $1",
+    [username]
+  )
+  const viewer = await getCurrentUser()
+  if (!row || (!row.is_public && viewer?.id !== row.id))
+    return { title: "پیدا نشد" }
+  return { title: `@${username}` }
 }
 
 export default async function ProfilePage({ params }: Params) {
@@ -30,14 +38,21 @@ export default async function ProfilePage({ params }: Params) {
   const username = decodeURIComponent(raw).toLowerCase()
   if (!/^[a-z0-9_]{3,20}$/.test(username)) notFound()
 
-  const profile = await queryOne<{ id: number; username: string; timezone: string; created_at: Date }>(
-    "SELECT id, username, timezone, created_at FROM users WHERE username = $1",
+  const profile = await queryOne<{
+    id: number
+    username: string
+    timezone: string
+    created_at: Date
+    is_public: boolean
+  }>(
+    "SELECT id, username, timezone, created_at, is_public FROM users WHERE username = $1",
     [username]
   )
   if (!profile) notFound()
 
   const viewer = await getCurrentUser()
   const own = viewer?.id === profile.id
+  if (!profile.is_public && !own) notFound()
 
   const [{ days, sessions, totals }, live] = await Promise.all([
     getProfileData(profile.id, profile.timezone, viewer?.id ?? null),

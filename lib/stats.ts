@@ -31,8 +31,9 @@ export async function getLiveTimers(
     run_started_ms: number | null
     elapsed_before_ms: number
     now_ms: number
+    is_public: boolean
   }>(
-    `SELECT u.id AS user_id, u.username, a.mode, a.duration_sec, t.title, t.is_private,
+    `SELECT u.id AS user_id, u.username, u.is_public, a.mode, a.duration_sec, t.title, t.is_private,
             (extract(epoch from a.run_started_at) * 1000)::float8 AS run_started_ms,
             a.elapsed_before_ms::float8 AS elapsed_before_ms,
             (extract(epoch from now()) * 1000)::float8 AS now_ms
@@ -49,12 +50,29 @@ export async function getLiveTimers(
   )
   const items: LiveItem[] = rows.map((r) => {
     const own = viewerId != null && viewerId === r.user_id
+
+    if (!r.is_public && !own) {
+      return {
+        hidden: true,
+        username: randomChars(8),
+        mode: "focus",
+        title: randomChars(12),
+        isPrivate: false,
+        durationSec: 0,
+        elapsedBeforeMs: 0,
+        runStartedAt: null,
+        clock: randomChars(5),
+      }
+    }
+
     let title: string
     if (r.mode !== "focus") title = "استراحت"
     else if (r.title == null) title = NO_TASK_TITLE
     else if (r.is_private && !own) title = PRIVATE_TITLE
     else title = r.title
     return {
+      hidden: false,
+      clock: null,
       username: r.username,
       mode: r.mode as TimerMode,
       title,
@@ -162,4 +180,17 @@ export async function getProfileData(
       bestSec,
     },
   }
+}
+
+function randomChars(len: number) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  let s = ""
+  for (let i = 0; i < len; i++)
+    s += chars[Math.floor(Math.random() * chars.length)]
+  return s
+}
+
+export async function getUserCount(): Promise<number> {
+  const row = await queryOne<{ count: number }>("SELECT COUNT(*)::int AS count FROM users")
+  return row?.count ?? 0
 }

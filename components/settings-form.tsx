@@ -9,24 +9,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import { Switch } from "@/components/ui/switch"
 
-type Props = { focus: number; short: number; long: number; every: number }
+type Props = {
+  focus: number
+  short: number
+  long: number
+  every: number
+  isPublic: boolean
+}
 
-export function SettingsForm({ focus, short, long, every }: Props) {
-  const [state, action, pending] = useActionState(updateSettingsAction, undefined)
+export function SettingsForm({ focus, short, long, every, isPublic }: Props) {
+  const [state, action, pending] = useActionState(
+    updateSettingsAction,
+    undefined
+  )
 
   const fields = [
-    { name: "focus", label: "مدت تمرکز (دقیقه)", value: focus, min: 1, max: 180 },
-    { name: "short", label: "استراحت کوتاه (دقیقه)", value: short, min: 1, max: 60 },
-    { name: "long", label: "استراحت بلند (دقیقه)", value: long, min: 1, max: 120 },
-    { name: "every", label: "استراحت بلند بعد از چند دور", value: every, min: 2, max: 12 },
+    {
+      name: "focus",
+      label: "مدت تمرکز (دقیقه)",
+      value: focus,
+      min: 1,
+      max: 180,
+    },
+    {
+      name: "short",
+      label: "استراحت کوتاه (دقیقه)",
+      value: short,
+      min: 1,
+      max: 60,
+    },
+    {
+      name: "long",
+      label: "استراحت بلند (دقیقه)",
+      value: long,
+      min: 1,
+      max: 120,
+    },
+    {
+      name: "every",
+      label: "استراحت بلند بعد از چند دور",
+      value: every,
+      min: 2,
+      max: 12,
+    },
   ]
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>زمان‌بندی</CardTitle>
-        <CardDescription>تغییرات از شروع تایمر بعدی اعمال می‌شود.</CardDescription>
+        <CardDescription>
+          تغییرات از شروع تایمر بعدی اعمال می‌شود.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={action}>
@@ -58,10 +94,23 @@ export function SettingsForm({ focus, short, long, every }: Props) {
                   className="text-left"
                 />
                 {f.name === "every" && (
-                  <FieldDescription>مثلاً ۴ یعنی بعد از هر ۴ دور تمرکز، استراحت بلند پیشنهاد می‌شود.</FieldDescription>
+                  <FieldDescription>
+                    مثلاً ۴ یعنی بعد از هر ۴ دور تمرکز، استراحت بلند پیشنهاد
+                    می‌شود.
+                  </FieldDescription>
                 )}
               </Field>
             ))}
+            <Field orientation="horizontal">
+              <Switch name="isPublic" defaultChecked={isPublic} id="isPublic" />
+              <div className="flex flex-col gap-1">
+                <FieldLabel htmlFor="isPublic">پروفایل عمومی</FieldLabel>
+                <FieldDescription>
+                  اگر خاموش باشد، در لیست فعال‌ها فقط حروف تصادفی نشان داده
+                  می‌شود و کسی نمی‌تواند پروفایلت را ببیند.
+                </FieldDescription>
+              </div>
+            </Field>
             <Button type="submit" size="lg" disabled={pending}>
               {pending && <Spinner />}
               ذخیره

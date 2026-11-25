@@ -21,6 +21,7 @@ export default async function SettingsPage() {
         short={user.shortBreakMinutes}
         long={user.longBreakMinutes}
         every={user.longBreakEvery}
+        isPublic={user.isPublic}
       />
       <InstallCard />
       <form action={logoutAction}>

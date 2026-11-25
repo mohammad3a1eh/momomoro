@@ -17,6 +17,7 @@ export type User = {
   longBreakMinutes: number
   longBreakEvery: number
   createdAt: string
+  isPublic: boolean
 }
 
 function scryptAsync(password: string, salt: Buffer, len: number): Promise<Buffer> {
@@ -82,6 +83,7 @@ type UserRow = {
   long_break_minutes: number
   long_break_every: number
   created_at: Date
+  is_public: boolean
 }
 
 export function mapUser(r: UserRow): User {
@@ -94,12 +96,12 @@ export function mapUser(r: UserRow): User {
     longBreakMinutes: r.long_break_minutes,
     longBreakEvery: r.long_break_every,
     createdAt: r.created_at.toISOString(),
+    isPublic: r.is_public,
   }
 }
 
 export const USER_COLUMNS =
-  "u.id, u.username, u.timezone, u.focus_minutes, u.short_break_minutes, u.long_break_minutes, u.long_break_every, u.created_at"
-
+  "u.id, u.username, u.timezone, u.focus_minutes, u.short_break_minutes, u.long_break_minutes, u.long_break_every, u.is_public, u.created_at"
 export const getCurrentUser = cache(async (): Promise<User | null> => {
   const jar = await cookies()
   const token = jar.get(COOKIE)?.value

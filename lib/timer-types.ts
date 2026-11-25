@@ -26,6 +26,8 @@ export type LiveItem = {
   durationSec: number
   elapsedBeforeMs: number
   runStartedAt: number | null
+  hidden: boolean
+  clock: string | null
 }
 
 export type DayPoint = {

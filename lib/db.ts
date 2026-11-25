@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS active_timers (
   elapsed_before_ms BIGINT NOT NULL DEFAULT 0,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT TRUE;
 `
 
 const g = globalThis as unknown as {
